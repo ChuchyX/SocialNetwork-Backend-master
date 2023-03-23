@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using SocialNetwork.Services.UserService;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -17,11 +19,13 @@ namespace SocialNetwork.Controllers
     {
         private readonly IUserService _userService;
         private readonly IWebHostEnvironment _environment;
+        private readonly DataContext _context;
 
         public AuthController(DataContext context, IUserService userService, IWebHostEnvironment env)
         {
             _userService = userService;
             _environment = env;
+            _context = context;
         }
         
         [HttpPost("register")]
@@ -66,7 +70,7 @@ namespace SocialNetwork.Controllers
         }
 
         [HttpGet("getme")]
-        public async Task<ActionResult<Tuple<ReturnUser,string>>> GetMe()
+        public async Task<ActionResult<ReturnUser>> GetMe()
         {
             var result = await _userService.GetMe();
             if (result == null) return BadRequest("User Not Found!");
@@ -108,6 +112,40 @@ namespace SocialNetwork.Controllers
                 }
             }
             return Ok(user);
-        }    
+        }
+
+
+        //Refactorizar despues: hacer metodo mediante servicio user
+        [HttpPost("addpost")]
+        public async Task<ActionResult<List<Post>>> AddPost([FromForm] PostDto postdto)
+        {        
+            var email = _userService.GetMyEmail();
+            var user = _context.Users.FirstOrDefault(x => x.Email == email);
+            
+            int cantPostUser = _context.Posts.Count(post => post.UserId == user.Id);
+
+            string nameImg = "p-" + user.Id.ToString() + "-" + cantPostUser + 1;                      
+            var filename = Path.Combine(_environment.ContentRootPath, "uploadPictures", nameImg);
+            var fs = new FileStream(filename, FileMode.Create);
+            await postdto.picture.CopyToAsync(fs);
+            fs.Close();
+
+
+            Post post = new Post();
+            post.Content = postdto.content;
+            post.UserId = user.Id;
+            post.Picture = filename;
+            user.Posts.Add(post);
+            await _context.SaveChangesAsync();
+
+
+            //A partir de aqui crear un postResponse, para enviar una lista de postResponse al front
+
+            ReturnUser returnUser = new ReturnUser();
+            returnUser.email = "correcto@gmail.com";
+
+            return Ok(returnUser);
+        }
+
     }
 }

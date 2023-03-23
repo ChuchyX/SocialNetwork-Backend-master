@@ -2,7 +2,7 @@
 
 namespace SocialNetwork
 {
-    public class User
+    public partial class User
     {
         public int Id { get; set; }
         public string Username { get; set; }
@@ -15,5 +15,6 @@ namespace SocialNetwork
         public DateTime TokenCreated { get; set; }
         public DateTime TokenExpires { get; set; }
         public string ProfilePicture { get; set; } = string.Empty;
+        public virtual ICollection<Post> Posts { get; } = new List<Post>();
     }
 }
