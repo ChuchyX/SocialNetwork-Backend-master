@@ -117,18 +117,24 @@ namespace SocialNetwork.Controllers
 
         //Refactorizar despues: hacer metodo mediante servicio user
         [HttpPost("addpost")]
-        public async Task<ActionResult<List<Post>>> AddPost([FromForm] PostDto postdto)
+        public async Task<ActionResult<List<PostResponse>>> AddPost([FromForm] PostDto postdto)
         {        
             var email = _userService.GetMyEmail();
             var user = _context.Users.FirstOrDefault(x => x.Email == email);
             
             int cantPostUser = _context.Posts.Count(post => post.UserId == user.Id);
 
-            string nameImg = "p-" + user.Id.ToString() + "-" + cantPostUser + 1;                      
-            var filename = Path.Combine(_environment.ContentRootPath, "uploadPictures", nameImg);
-            var fs = new FileStream(filename, FileMode.Create);
-            await postdto.picture.CopyToAsync(fs);
-            fs.Close();
+            var filename = "";
+            string nameImg = "";
+            if (postdto.picture != null)
+            {
+                nameImg = "p-" + user.Id.ToString() + "-" + cantPostUser + 1;
+                filename = Path.Combine(_environment.ContentRootPath, "uploadPictures", nameImg);
+                var fs = new FileStream(filename, FileMode.Create);
+                await postdto.picture.CopyToAsync(fs);
+                fs.Close();
+            }
+            
 
 
             Post post = new Post();
@@ -138,14 +144,119 @@ namespace SocialNetwork.Controllers
             user.Posts.Add(post);
             await _context.SaveChangesAsync();
 
+            List<PostResponse> postResponses = new List<PostResponse>();
+            var allposts = await _context.Posts.ToListAsync();
+            foreach (var p in allposts)
+            {
+                PostResponse currpResponse = new PostResponse();
+                currpResponse.Id = p.Id;
+                currpResponse.Content = p.Content;
+                currpResponse.Date = p.Date;
+                currpResponse.Likes = p.Likes;
+                currpResponse.Comentarios = p.Comentarios.ToList();
+                filename = p.Picture;
+                if (filename != "")
+                {
+                    using (var fs = new System.IO.FileStream(filename, FileMode.Open, FileAccess.Read))
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            await fs.CopyToAsync(ms);
+                            currpResponse.Image = File(ms.ToArray(), "image/jpg", fileDownloadName: nameImg + ".jpg");
+                            fs.Close();
+                        }
+                    }
+                }
+                else
+                    currpResponse.Image = null;
+               
+                var userContext = _context.Users.FirstOrDefault(x => x.Id == p.UserId);
+                ReturnUser returnUser = new ReturnUser();
+                returnUser.id = userContext.Id;
+                returnUser.username = userContext.Username;
+                returnUser.email = userContext.Email;
+                returnUser.edad = userContext.Edad;
+                returnUser.sexo = userContext.Sexo;
+                filename = Path.Combine(_environment.ContentRootPath, "uploadPictures", userContext.ProfilePicture);
+                if (filename != "")
+                {
+                    using (var fs = new System.IO.FileStream(filename, FileMode.Open, FileAccess.Read))
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            await fs.CopyToAsync(ms);
+                            returnUser.image = File(ms.ToArray(), "image/jpg", fileDownloadName: nameImg + ".jpg");
+                            fs.Close();
+                        }
+                    }
+                }
+                else
+                    returnUser.image = null;
+               
+                currpResponse.User = returnUser;
+                postResponses.Add(currpResponse);
+            }         
 
-            //A partir de aqui crear un postResponse, para enviar una lista de postResponse al front
-
-            ReturnUser returnUser = new ReturnUser();
-            returnUser.email = "correcto@gmail.com";
-
-            return Ok(returnUser);
+            return Ok(postResponses);
         }
 
+        [HttpGet("allposts")]
+        public async Task<ActionResult<List<PostResponse>>> AllPosts()
+        {
+            List<PostResponse> postResponses = new List<PostResponse>();
+            var allposts = await _context.Posts.ToListAsync();
+            foreach (var p in allposts)
+            {
+                PostResponse currpResponse = new PostResponse();
+                currpResponse.Id = p.Id;
+                currpResponse.Content = p.Content;
+                currpResponse.Date = p.Date;
+                currpResponse.Likes = p.Likes;
+                currpResponse.Comentarios = p.Comentarios.ToList();
+                var filename = p.Picture;              
+                if (filename != "")
+                {
+                    using (var fs = new System.IO.FileStream(filename, FileMode.Open, FileAccess.Read))
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            await fs.CopyToAsync(ms);
+                            currpResponse.Image = File(ms.ToArray(), "image/jpg", fileDownloadName: p.Id + ".jpg");
+                            fs.Close();
+                        }
+                    }
+                }
+                else
+                    currpResponse.Image = null;
+
+                var userContext = _context.Users.FirstOrDefault(x => x.Id == p.UserId);
+                ReturnUser returnUser = new ReturnUser();
+                returnUser.id = userContext.Id;
+                returnUser.username = userContext.Username;
+                returnUser.email = userContext.Email;
+                returnUser.edad = userContext.Edad;
+                returnUser.sexo = userContext.Sexo;
+                filename = Path.Combine(_environment.ContentRootPath, "uploadPictures", userContext.ProfilePicture);
+                if (filename != "")
+                {
+                    using (var fs = new System.IO.FileStream(filename, FileMode.Open, FileAccess.Read))
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            await fs.CopyToAsync(ms);
+                            returnUser.image = File(ms.ToArray(), "image/jpg", fileDownloadName: returnUser.id + ".jpg");
+                            fs.Close();
+                        }
+                    }
+                }
+                else
+                    returnUser.image = null;
+
+                currpResponse.User = returnUser;
+                postResponses.Add(currpResponse);
+            }
+
+            return Ok(postResponses);
+        }
     }
 }

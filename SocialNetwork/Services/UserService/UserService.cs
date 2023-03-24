@@ -68,6 +68,7 @@ namespace SocialNetwork.Services.UserService
             rUser.email = user.Email;
             rUser.edad = user.Edad;
             rUser.sexo = user.Sexo;
+            rUser.id = user.Id;
             string nameImg = user.ProfilePicture;
 
             return new Tuple<ReturnUser, string>(rUser, nameImg);
@@ -104,6 +105,7 @@ namespace SocialNetwork.Services.UserService
                 rUser.email = usuario.Email;
                 rUser.edad = usuario.Edad;
                 rUser.sexo = usuario.Sexo;
+                rUser.id = usuario.Id;
                 string nameImg = usuario.ProfilePicture;
 
                 ResponseLogin response = new ResponseLogin();
@@ -171,6 +173,7 @@ namespace SocialNetwork.Services.UserService
             rUser.email = user.Email;
             rUser.edad = user.Edad;
             rUser.sexo = user.Sexo;
+            rUser.id = user.Id;
 
             return new Tuple<ReturnUser, string>(rUser, nameImg);
         }
