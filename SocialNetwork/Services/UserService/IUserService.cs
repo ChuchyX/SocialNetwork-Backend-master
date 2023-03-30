@@ -9,5 +9,6 @@ namespace SocialNetwork.Services.UserService
         Task<Tuple<ReturnUser, string>> GetMe();
         Task<Tuple<ResponseLogin, string>> Login(UserLoginDto request);
         Task<Tuple<ReturnUser, string>> UploadPP(IFormFile file);
+        string TiempoTranscurrido(DateTime fecha);
     }
 }

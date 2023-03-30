@@ -212,6 +212,7 @@ namespace SocialNetwork.Controllers
                 currpResponse.Content = p.Content;
                 currpResponse.Date = p.Date;
                 currpResponse.Likes = p.Likes;
+                currpResponse.Since = _userService.TiempoTranscurrido(p.Date);
                 currpResponse.Comentarios = p.Comentarios.ToList();
                 var filename = p.Picture;              
                 if (filename != "")

@@ -177,5 +177,38 @@ namespace SocialNetwork.Services.UserService
 
             return new Tuple<ReturnUser, string>(rUser, nameImg);
         }
+
+        public string TiempoTranscurrido(DateTime fecha)
+        {
+            TimeSpan diferencia = DateTime.Now - fecha;
+            if (diferencia.TotalSeconds < 60)
+            {
+                return "Ahora";
+            }
+            else if (diferencia.TotalMinutes < 60)
+            {
+                return "Hace " + ((int)diferencia.TotalMinutes).ToString() + " minutos";
+            }
+            else if (diferencia.TotalHours < 24)
+            {
+                int horas = (int)diferencia.TotalHours;
+                return "Hace " + horas + (horas == 1 ? " hora" : " horas");
+            }
+            else if (diferencia.TotalDays < 30)
+            {
+                return "Hace " + ((int)diferencia.TotalDays).ToString() + " días";
+            }
+            else if (diferencia.TotalDays < 365)
+            {
+                int meses = (int)diferencia.TotalDays / 30;
+                return "Hace " + meses.ToString() + (meses == 1 ? " mes" : " meses");
+            }
+            else
+            {
+                int años = (int)diferencia.TotalDays / 365;
+                return "Hace " + años.ToString() + (años == 1 ? " año" : " años");
+            }
+        }
+
     }
 }
