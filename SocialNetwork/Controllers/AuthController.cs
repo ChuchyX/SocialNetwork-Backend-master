@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SocialNetwork.Services.UserService;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -258,6 +259,23 @@ namespace SocialNetwork.Controllers
             }
 
             return Ok(postResponses);
+        }
+
+
+
+        [HttpPost("addlike")]
+        public async Task<ActionResult> addLike([FromBody] object data)
+        {
+            var objetoDeserializado = JObject.Parse(data.ToString());
+            int id = (int)objetoDeserializado["id"];
+
+            var postC = _context.Posts.FirstOrDefault(p => p.Id == id);
+            postC.Likes++;
+
+            _context.Posts.Entry(postC).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }

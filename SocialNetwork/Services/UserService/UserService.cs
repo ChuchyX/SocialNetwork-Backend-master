@@ -177,7 +177,6 @@ namespace SocialNetwork.Services.UserService
 
             return new Tuple<ReturnUser, string>(rUser, nameImg);
         }
-
         public string TiempoTranscurrido(DateTime fecha)
         {
             TimeSpan diferencia = DateTime.Now - fecha;
@@ -209,6 +208,5 @@ namespace SocialNetwork.Services.UserService
                 return "Hace " + años.ToString() + (años == 1 ? " año" : " años");
             }
         }
-
     }
 }
