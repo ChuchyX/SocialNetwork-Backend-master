@@ -179,7 +179,7 @@ namespace SocialNetwork.Controllers
                 returnUser.edad = userContext.Edad;
                 returnUser.sexo = userContext.Sexo;
                 filename = Path.Combine(_environment.ContentRootPath, "uploadPictures", userContext.ProfilePicture);
-                if (filename != "")
+                if (userContext.ProfilePicture != "")
                 {
                     using (var fs = new System.IO.FileStream(filename, FileMode.Open, FileAccess.Read))
                     {
@@ -214,7 +214,13 @@ namespace SocialNetwork.Controllers
                 currpResponse.Date = p.Date;
                 currpResponse.Likes = p.Likes;
                 currpResponse.Since = _userService.TiempoTranscurrido(p.Date);
-                currpResponse.Comentarios = p.Comentarios.ToList();
+                currpResponse.Comentarios = _context.Comentarios.Where(c => c.PostId == p.Id).ToList();
+                currpResponse.Comentarios.Reverse();
+
+                for (int i = 0; i < currpResponse.Comentarios.Count; i++)
+                {
+                    currpResponse.Comentarios[i].Since = _userService.TiempoTranscurrido(currpResponse.Comentarios[i].Date);
+                }
                 var filename = p.Picture;              
                 if (filename != "")
                 {
@@ -239,7 +245,7 @@ namespace SocialNetwork.Controllers
                 returnUser.edad = userContext.Edad;
                 returnUser.sexo = userContext.Sexo;
                 filename = Path.Combine(_environment.ContentRootPath, "uploadPictures", userContext.ProfilePicture);
-                if (filename != "")
+                if (userContext.ProfilePicture != "")
                 {
                     using (var fs = new System.IO.FileStream(filename, FileMode.Open, FileAccess.Read))
                     {
@@ -276,6 +282,28 @@ namespace SocialNetwork.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
+        }
+
+        [HttpPost("addcomment")]
+        public async Task<ActionResult<List<Comentario>>> addComment(ComentarioDto c)
+        {
+            Comentario comentario = new Comentario();
+            comentario.Content = c.content;
+            comentario.PostId = c.postid;
+            comentario.UserId = c.userid;
+
+            var postC = _context.Posts.FirstOrDefault(p => p.Id == c.postid);
+            postC.Comentarios.Add(comentario);
+            _context.Posts.Entry(postC).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            var commentsList = _context.Comentarios.Where(c => c.PostId == c.PostId).ToList();
+            foreach (var item in commentsList)
+            {
+                item.Since = _userService.TiempoTranscurrido(item.Date);
+            }
+
+            return Ok(postC.Comentarios);
         }
     }
 }

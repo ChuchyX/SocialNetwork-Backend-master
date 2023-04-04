@@ -12,7 +12,7 @@ using SocialNetwork;
 namespace SocialNetwork.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230323155143_first")]
+    [Migration("20230404202728_first")]
     partial class first
     {
         /// <inheritdoc />
@@ -45,6 +45,10 @@ namespace SocialNetwork.Migrations
 
                     b.Property<int>("PostId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Since")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
